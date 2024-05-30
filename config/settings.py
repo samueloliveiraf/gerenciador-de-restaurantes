@@ -39,7 +39,8 @@ THIRD_APPS = [
 ]
 
 PROJECT_APPS = [
-    'apps.users.apps.UsersConfig'
+    'apps.users.apps.UsersConfig',
+    'apps.orders.apps.OrdersConfig'
 ]
 
 INSTALLED_APPS = PROJECT_APPS + THIRD_APPS + DEFAULT_APPS

@@ -23,8 +23,8 @@ class User(AbstractBaseUser, PermissionsMixin):
         ('admin', 'Admin'),
         ('manager', 'Gerente'),
         ('waiter', 'Garçom'),
-        ('customer', 'Cliente'),
         ('kitchen', 'Cozinha'),
+        ('box', 'Caixa'),
     ))
 
     objects = UserManager()
