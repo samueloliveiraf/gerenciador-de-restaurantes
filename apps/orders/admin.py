@@ -1,23 +1,25 @@
 from django.contrib import admin
-from .models import Table, Product, Order, OrderItem
+from django import forms
+from .models import Table, Product, Order, OrderProduct
 
 
-@admin.register(Table)
-class TableAdmin(admin.ModelAdmin):
-    list_display = ('number', 'status', 'capacity')
-    list_filter = ('status',)
-    search_fields = ('number',)
+class OrderProductInline(admin.TabularInline):
+    model = OrderProduct
+    extra = 1
 
 
-@admin.register(Product)
-class ProductAdmin(admin.ModelAdmin):
-    list_display = ('name', 'price', 'availability')
-    list_filter = ('availability',)
-    search_fields = ('name', 'description')
+class OrderForm(forms.ModelForm):
+    products = forms.ModelMultipleChoiceField(queryset=Product.objects.all(), widget=forms.CheckboxSelectMultiple)
+
+    class Meta:
+        model = Order
+        fields = '__all__'
 
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
+    form = OrderForm
+    inlines = (OrderProductInline,)
     list_display = ('id', 'table', 'waiter', 'status', 'datetime')
     list_filter = ('status', 'datetime', 'waiter')
     search_fields = ('table__number', 'waiter__username')
@@ -29,8 +31,14 @@ class OrderAdmin(admin.ModelAdmin):
     get_waiter_username.short_description = 'Waiter Username'
 
 
-@admin.register(OrderItem)
-class OrderItemAdmin(admin.ModelAdmin):
-    list_display = ('order', 'product', 'quantity')
-    list_filter = ('order', 'product')
-    search_fields = ('order__id', 'product__name')
+@admin.register(Table)
+class TableAdmin(admin.ModelAdmin):
+    list_display = ('number', 'status', 'capacity')
+    list_filter = ('status',)
+    search_fields = ('number',)
+
+
+@admin.register(Product)
+class ProductAdmin(admin.ModelAdmin):
+    list_display = ('name', 'price')
+    search_fields = ('name', 'description')
