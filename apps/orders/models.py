@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.db import models
 
 from apps.core.models import BaseModel
@@ -58,11 +59,15 @@ class Order(BaseModel):
         limit_choices_to={'user_type': 'waiter'},
         related_name='orders'
     )
-    products = models.ManyToManyField(Product, related_name='orders', through='OrderProduct')
     datetime = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f'Pedido {self.id} - Mesa {self.table.number}'
+
+    def clean(self):
+        if not self.pk and self.table.status != Table.Status.CLOSED:
+            raise ValidationError(f'A mesa {self.table.number} não está fechada. Não é possível criar um novo pedido.')
+        super().clean()
 
     class Meta:
         verbose_name = 'Pedido'
@@ -70,13 +75,26 @@ class Order(BaseModel):
 
 
 class OrderProduct(models.Model):
-    pedido = models.ForeignKey(Order, on_delete=models.CASCADE)
-    produto = models.ForeignKey(Product, on_delete=models.CASCADE)
-    quantidade = models.PositiveIntegerField(default=1)
-
-    def __str__(self):
-        return f'{self.produto.name} - Quantidade: {self.quantidade}'
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='order_products')
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='order_products')
+    quantity = models.PositiveIntegerField(default=1)
 
     class Meta:
         verbose_name = 'Item do Pedido'
         verbose_name_plural = 'Itens do Pedido'
+
+    def __str__(self):
+        return f'{self.product.name} - Quantidade: {self.quantity}'
+
+
+class Bill(BaseModel):
+    order = models.OneToOneField(Order, on_delete=models.CASCADE, related_name='bill')
+    total_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    generated_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Conta'
+        verbose_name_plural = 'Contas'
+
+    def __str__(self):
+        return f'Conta para o Pedido {self.order.id} - Total: {self.total_amount}'

@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django import forms
-from .models import Table, Product, Order, OrderProduct
+
+from .models import Table, Product, Order, OrderProduct, Bill
 
 
 class OrderProductInline(admin.TabularInline):
@@ -9,17 +10,20 @@ class OrderProductInline(admin.TabularInline):
 
 
 class OrderForm(forms.ModelForm):
-    products = forms.ModelMultipleChoiceField(queryset=Product.objects.all(), widget=forms.CheckboxSelectMultiple)
-
     class Meta:
         model = Order
         fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super(OrderForm, self).__init__(*args, **kwargs)
+        if self.instance.pk:
+            self.fields['table'].queryset = Table.objects.filter(status=Table.Status.CLOSED)
 
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
     form = OrderForm
-    inlines = (OrderProductInline,)
+    inlines = [OrderProductInline]
     list_display = ('id', 'table', 'waiter', 'status', 'datetime')
     list_filter = ('status', 'datetime', 'waiter')
     search_fields = ('table__number', 'waiter__username')
@@ -42,3 +46,6 @@ class TableAdmin(admin.ModelAdmin):
 class ProductAdmin(admin.ModelAdmin):
     list_display = ('name', 'price')
     search_fields = ('name', 'description')
+
+
+admin.site.register(Bill)
