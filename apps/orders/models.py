@@ -88,13 +88,20 @@ class OrderProduct(models.Model):
 
 
 class Bill(BaseModel):
+    STATUS_CHOICES = [
+        ('pending', 'Pendente'),
+        ('paid', 'Paga')
+    ]
+
     order = models.OneToOneField(Order, on_delete=models.CASCADE, related_name='bill')
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
-    generated_at = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=7, choices=STATUS_CHOICES, default='pending')
 
     class Meta:
         verbose_name = 'Conta'
         verbose_name_plural = 'Contas'
 
     def __str__(self):
-        return f'Conta para o Pedido {self.order.id} - Total: {self.total_amount}'
+        return (f'Conta para o Pedido '
+                f'{self.order.id} - Total: {self.total_amount} - '
+                f'Status: {self.get_status_display()}')
