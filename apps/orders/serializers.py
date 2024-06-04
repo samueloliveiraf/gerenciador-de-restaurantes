@@ -15,7 +15,7 @@ class OrderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Order
-        fields = ['table', 'waiter', 'order_products']
+        fields = ['table', 'order_products']
 
     def validate(self, data):
         table = data.get('table')
@@ -27,7 +27,9 @@ class OrderSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         order_products_data = validated_data.pop('order_products')
         table = validated_data.get('table')
-        order = Order.objects.create(**validated_data)
+        waiter = self.context['request'].user
+
+        order = Order.objects.create(waiter=waiter, **validated_data)
         for order_product_data in order_products_data:
             OrderProduct.objects.create(order=order, **order_product_data)
 

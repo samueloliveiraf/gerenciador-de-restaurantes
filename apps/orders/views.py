@@ -14,7 +14,9 @@ class CreateOrderView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
-        serializer = OrderSerializer(data=request.data)
+        data = request.data.copy()
+        serializer = OrderSerializer(data=data, context={'request': request})
+
         if serializer.is_valid():
             order = serializer.save()
             return Response(OrderSerializer(order).data, status=status.HTTP_201_CREATED)
