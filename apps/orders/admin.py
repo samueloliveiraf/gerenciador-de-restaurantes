@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django import forms
 
-from .models import Table, Product, Order, OrderProduct, Bill
+from .models import *
 
 
 class OrderProductInline(admin.TabularInline):
@@ -44,8 +44,21 @@ class TableAdmin(admin.ModelAdmin):
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ('name', 'price')
+    list_display = ('name', 'price', 'type')
+    list_filter = ('type',)
     search_fields = ('name', 'description')
+
+
+@admin.register(Kitchen)
+class KitchenAdmin(admin.ModelAdmin):
+    list_display = ('order_product', 'status', 'started_at', 'finished_at')
+    list_filter = ('status', 'started_at', 'finished_at')
+    search_fields = ('order_product__product__name', 'waiter__email')
+
+    def get_order_product_product_name(self, obj):
+        return obj.order_product.product.name
+    get_order_product_product_name.admin_order_field = 'order_product__product__name'
+    get_order_product_product_name.short_description = 'Product Name'
 
 
 admin.site.register(Bill)
